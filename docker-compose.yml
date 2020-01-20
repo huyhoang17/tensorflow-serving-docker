@@ -1,0 +1,35 @@
+version: '2'
+services:
+  web:
+    container_name: mnist_api
+    build: .
+    restart: always
+    volumes:
+      - .:/code
+    command: bash -c "python3 serve.py"
+    ports:
+      - "5000:5000"
+    networks:
+      mynet:
+        ipv4_address: 10.5.0.4
+  tf-serving:
+    image: tensorflow/serving
+    restart: always
+    ports:
+      - "8500:8500"
+      - "8501:8501"
+    volumes:
+      - ./serving:/models
+      - ./serving_docker.config:/models/serving_docker.config
+    command: --model_config_file=/models/serving_docker.config
+    networks:
+      mynet:
+        ipv4_address: 10.5.0.5
+
+networks:
+  mynet:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.5.0.0/16
+         gateway: 10.5.0.1
